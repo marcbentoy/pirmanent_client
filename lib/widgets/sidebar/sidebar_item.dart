@@ -12,7 +12,6 @@ class SidebarItem extends StatefulWidget {
   final void Function(int) updateCurrentPageIndex;
 
   const SidebarItem({
-    super.key,
     required this.title,
     required this.svgIconAssetPath,
     required this.updateCurrentPageIndex,
@@ -68,8 +67,21 @@ class _SidebarItemState extends State<SidebarItem> {
           // notification
           widget.notifications != null && widget.notifications! > 0
               ? Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: kRed,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: Center(
-                    child: Text(widget.notifications.toString()),
+                    child: Text(
+                      widget.notifications.toString(),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: kWhite,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 )
               : SizedBox.shrink(),

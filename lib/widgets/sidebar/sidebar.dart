@@ -44,6 +44,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
         title: "Sign",
         svgIconAssetPath: "assets/icons/sign_icon.svg",
         clickCallback: () {},
+        notifications: 10,
       ),
       SidebarModel(
         title: "Verify",
@@ -103,6 +104,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
           updateCurrentPageIndex: widget.updateCurrentPageIndex,
           index: i,
           currIndex: widget.currIndex,
+          notifications: curr.notifications,
         ),
       );
     }
