@@ -5,11 +5,15 @@ import 'package:pirmanent_client/constants.dart';
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final bool? obscure;
+  final Widget? prefixIcon;
+  final String? hintText;
 
   const CustomTextField({
     super.key,
     this.obscure,
     required this.controller,
+    this.prefixIcon,
+    this.hintText,
   });
 
   @override
@@ -20,6 +24,8 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       style: GoogleFonts.inter(),
       decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: prefixIcon,
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: kBorder),

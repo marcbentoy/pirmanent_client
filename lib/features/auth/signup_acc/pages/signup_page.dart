@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
 import 'package:pirmanent_client/features/auth/login_acc/pages/login_page.dart';
+import 'package:pirmanent_client/widgets/custom_filled_button.dart';
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
 
 class SignupPage extends StatefulWidget {
@@ -174,20 +175,8 @@ class _SignupPageState extends State<SignupPage> {
                   ),
 
                   // login button
-                  FilledButton(
-                    style: ButtonStyle(
-                      minimumSize: MaterialStatePropertyAll(Size(272, 48)),
-                      backgroundColor: MaterialStatePropertyAll(kBlue),
-                      shape: MaterialStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      padding: MaterialStatePropertyAll(
-                        EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      ),
-                    ),
-                    onPressed: () {
+                  CustomFilledButton(
+                    click: () {
                       // setState(() {});
                       debugPrint(emailController.text);
                       debugPrint(passwordController.text);

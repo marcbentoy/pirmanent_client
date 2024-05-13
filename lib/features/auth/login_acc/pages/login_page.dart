@@ -5,6 +5,8 @@ import 'package:pirmanent_client/features/auth/signup_acc/pages/signup_page.dart
 
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
 
+import '../../../../widgets/custom_filled_button.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -123,20 +125,8 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   // login button
-                  FilledButton(
-                    style: ButtonStyle(
-                      minimumSize: MaterialStatePropertyAll(Size(272, 48)),
-                      backgroundColor: MaterialStatePropertyAll(kBlue),
-                      shape: MaterialStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      padding: MaterialStatePropertyAll(
-                        EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      ),
-                    ),
-                    onPressed: () {
+                  CustomFilledButton(
+                    click: () {
                       // setState(() {});
                       debugPrint(emailController.text);
                       debugPrint(passwordController.text);
