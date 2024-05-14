@@ -12,6 +12,7 @@ late String authToken;
 late int signatureReqNotifs;
 
 void main() async {
+  signatureReqNotifs = 0;
   runApp(const MainApp());
 }
 
