@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
+import 'package:pirmanent_client/main.dart';
 import 'package:pirmanent_client/models/document_model.dart';
 import 'package:pirmanent_client/widgets/custom_filled_button.dart';
 import 'package:pirmanent_client/widgets/document_tile.dart';
@@ -149,7 +150,8 @@ class SingleDocPage extends StatelessWidget {
                     ),
 
                     // sign action
-                    doc.status == DocumentStatus.waiting
+                    doc.status == DocumentStatus.waiting &&
+                            doc.signer.email == userData.email
                         ? Container(
                             padding: EdgeInsets.all(8),
                             child: Row(

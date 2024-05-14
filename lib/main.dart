@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pirmanent_client/features/auth/login_acc/pages/login_page.dart';
 import 'package:pirmanent_client/features/auth/signup_acc/pages/signup_page.dart';
 import 'package:pirmanent_client/features/pirmanent/pirmanent.dart';
@@ -13,6 +14,11 @@ late int signatureReqNotifs;
 
 void main() async {
   signatureReqNotifs = 0;
+
+  final sstorage = FlutterSecureStorage();
+  String? value = await sstorage.read(key: '1@gmail.com');
+  print(value);
+
   runApp(const MainApp());
 }
 

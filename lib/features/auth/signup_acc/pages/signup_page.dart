@@ -1,5 +1,6 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
 import 'package:pirmanent_client/core/crypto_utils.dart';
@@ -210,6 +211,7 @@ class _SignupPageState extends State<SignupPage> {
                         final convertedPrivateKey = intsToHexString(
                             await keyPair.extractPrivateKeyBytes());
                         debugPrint("private key: $convertedPrivateKey");
+
                         final extractedPubKey =
                             await keyPair.extractPublicKey();
                         debugPrint(
@@ -226,6 +228,12 @@ class _SignupPageState extends State<SignupPage> {
                           "name": nameController.text,
                           "publicKey": intsToHexString(extractedPubKey.bytes),
                         };
+
+                        // TODO: store private key securely with flutter secure storage
+                        final sstorage = new FlutterSecureStorage();
+                        sstorage.write(
+                            key: emailController.text,
+                            value: convertedPrivateKey);
 
                         final record =
                             await pb.collection('users').create(body: body);

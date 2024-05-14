@@ -37,7 +37,7 @@ class _PrivateDocsPageState extends State<PrivateDocsPage> {
   void getPrivDocs() async {
     final documentsResponse = await http.get(
         Uri.parse(
-            "http://192.168.1.48:8090/api/collections/documents/records?filter=isPublic=false&&id=$userId"),
+            'http://192.168.1.48:8090/api/collections/documents/records?filter=isPublic%3Dfalse%26%26(signer%3D%27$userId%27%7C%7Cuploader%3D%27$userId%27)'),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-type': 'application/json',

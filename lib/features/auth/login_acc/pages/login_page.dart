@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
@@ -147,8 +149,8 @@ class _LoginPageState extends State<LoginPage> {
                         });
 
                         // pb.authStore.save();
-                        // var loggedInUserData =
-                        //     jsonDecode(pb.authStore.model.toString());
+                        var loggedInUserData =
+                            jsonDecode(pb.authStore.model.toString());
 
                         if (pb.authStore.isValid) {
                           final SharedPreferences prefs =
@@ -165,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                                   .getDataValue<String>("name"),
                             );
 
-                            // userId = loggedInUserData['id'];
+                            userId = loggedInUserData['id'];
                           });
                           // print("user id: $userId");
 
