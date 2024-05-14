@@ -36,7 +36,7 @@ class _SidebarItemState extends State<SidebarItem> {
         ),
         backgroundColor: MaterialStatePropertyAll(
             widget.index == widget.currIndex ? kPaleBlue : kBlack),
-        padding: MaterialStatePropertyAll(
+        padding: const MaterialStatePropertyAll(
           EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
@@ -49,7 +49,7 @@ class _SidebarItemState extends State<SidebarItem> {
           SvgPicture.asset(widget.svgIconAssetPath),
 
           // spacing
-          SizedBox(
+          const SizedBox(
             width: 8,
           ),
 
@@ -62,7 +62,7 @@ class _SidebarItemState extends State<SidebarItem> {
             ),
           ),
 
-          Spacer(),
+          const Spacer(),
 
           // notification
           widget.notifications != null && widget.notifications! > 0
@@ -84,7 +84,7 @@ class _SidebarItemState extends State<SidebarItem> {
                     ),
                   ),
                 )
-              : SizedBox.shrink(),
+              : const SizedBox.shrink(),
         ],
       ),
     );

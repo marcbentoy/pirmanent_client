@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
-import 'package:pirmanent_client/widgets/custom_filled_button.dart';
-import 'package:pirmanent_client/widgets/custom_text_field.dart';
+import 'package:pirmanent_client/main.dart';
+import 'package:pirmanent_client/models/document_model.dart';
+import 'package:http/http.dart' as http;
+import 'package:pirmanent_client/models/user_model.dart';
+
+import '../../../../widgets/document_tile.dart';
 
 class PublicDocsPage extends StatefulWidget {
   const PublicDocsPage({super.key});
@@ -14,6 +20,83 @@ class PublicDocsPage extends StatefulWidget {
 class _PublicDocsPageState extends State<PublicDocsPage> {
   TextEditingController searchDocController = TextEditingController();
 
+  int getCrossAxisCount() {
+    var sWidth = MediaQuery.of(context).size.width;
+
+    return sWidth > 1400
+        ? 5
+        : sWidth > 1200
+            ? 4
+            : sWidth > 928
+                ? 3
+                : 2;
+  }
+
+  List<Document> pubDocs = [];
+
+  void getPubDocs() async {
+    final documentsResponse = await http.get(
+        Uri.parse(
+            "http://192.168.1.48:8090/api/collections/documents/records?filter=isPublic=true"),
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-type': 'application/json',
+        });
+
+    if (documentsResponse.statusCode == 200) {
+      final data = jsonDecode(documentsResponse.body);
+
+      // Check if the response contains a list under a specific key
+      final items = data['items'] ?? data;
+
+      // Ensure items is a list
+      if (items is List) {
+        for (var item in items) {
+          // get uploader data
+          final uploader =
+              await pb.collection('users').getOne(item['uploader'], expand: "");
+          // get signer data
+          final signer = await pb.collection('users').getOne(item['signer']);
+
+          pubDocs.add(Document(
+            title: item['title'],
+            uploader: User(
+              email: uploader.data['email'],
+              name: uploader.data['name'],
+            ),
+            dateUploaded: DateTime.parse(item['created']),
+            description: item['description'],
+            signer: User(
+              email: signer.data['email'],
+              name: signer.data['name'],
+            ),
+            status: item['status'] == 'waiting'
+                ? DocumentStatus.waiting
+                : item['status'] == 'signed'
+                    ? DocumentStatus.signed
+                    : DocumentStatus.cancelled,
+            uploadedDigitalSignature: item['uploadedDigitalSignature'],
+          ));
+        }
+
+        setState(() {
+          pubDocs;
+        });
+      } else {
+        print('Expected a list but got: ${items.runtimeType}');
+      }
+    } else {
+      print('Failed to fetch collection data: ${documentsResponse.statusCode}');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    getPubDocs();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -21,68 +104,48 @@ class _PublicDocsPageState extends State<PublicDocsPage> {
       height: MediaQuery.of(context).size.height,
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // headline
-              Text(
-                "Public Documents",
-                style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: kHeadline,
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // headline
+            Text(
+              "Public Documents",
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: kHeadline,
               ),
+            ),
 
-              SizedBox(
-                height: 8,
-              ),
+            const SizedBox(height: 16),
 
-              // search box
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      controller: searchDocController,
-                      prefixIcon: Icon(Icons.search),
-                      hintText: "Search a document",
-                    ),
-                  ),
-                  SizedBox(
-                    width: 12,
-                  ),
-                  CustomFilledButton(
-                    width: 120,
-                    height: 56,
-                    click: () {},
-                    child: Text(
-                      "Search",
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
+            // public documents list
+            Expanded(
+              child: pubDocs.isEmpty
+                  ? Center(
+                      child: Text(
+                        "No public documents",
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          color: kSubheadline,
+                        ),
                       ),
+                    )
+                  : GridView.builder(
+                      itemCount: pubDocs.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        crossAxisCount: getCrossAxisCount(),
+                      ),
+                      itemBuilder: (context, index) {
+                        return DocumentTile(
+                          doc: pubDocs[index],
+                        );
+                      },
                     ),
-                  ),
-                ],
-              ),
-
-              Row(
-                children: [
-                  // CustomTextField(controller: searchDocController),
-                  // SizedBox(
-                  //   width: 4,
-                  // ),
-                  // CustomFilledButton(
-                  //   click: () {},
-                  //   child: Text("Search"),
-                  // ),
-                ],
-              ),
-
-              // public documents list
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );

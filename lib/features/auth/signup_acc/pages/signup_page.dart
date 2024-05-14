@@ -1,9 +1,13 @@
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
+import 'package:pirmanent_client/core/crypto_utils.dart';
 import 'package:pirmanent_client/features/auth/login_acc/pages/login_page.dart';
 import 'package:pirmanent_client/widgets/custom_filled_button.dart';
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
+import 'package:pirmanent_client/widgets/snackbars.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -13,10 +17,13 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  TextEditingController usernameController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController repeatPassController = TextEditingController();
+
+  final pb = PocketBase('http://192.168.1.48:8090');
 
   @override
   Widget build(BuildContext context) {
@@ -57,20 +64,38 @@ class _SignupPageState extends State<SignupPage> {
                       // wordSpacing: -4,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
-                  // Text(
-                  //   "Start to sign important documents",
-                  //   style: GoogleFonts.inter(
-                  //     color: kSubheadline,
-                  //     fontSize: 14,
-                  //   ),
-                  // ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 64,
+                  ),
+
+                  // username field
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Username",
+                        style: GoogleFonts.inter(
+                          color: kContent,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      CustomTextField(
+                        controller: usernameController,
+                      ),
+                    ],
+                  ),
+
+                  // spacer
+                  const SizedBox(
+                    height: 24,
                   ),
 
                   // name field
@@ -84,7 +109,7 @@ class _SignupPageState extends State<SignupPage> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       CustomTextField(
@@ -94,7 +119,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 24,
                   ),
 
@@ -109,7 +134,7 @@ class _SignupPageState extends State<SignupPage> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       CustomTextField(
@@ -119,7 +144,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 24,
                   ),
 
@@ -134,7 +159,7 @@ class _SignupPageState extends State<SignupPage> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       CustomTextField(
@@ -144,7 +169,7 @@ class _SignupPageState extends State<SignupPage> {
                     ],
                   ),
 
-                  SizedBox(
+                  const SizedBox(
                     height: 12,
                   ),
 
@@ -159,7 +184,7 @@ class _SignupPageState extends State<SignupPage> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       CustomTextField(
@@ -170,16 +195,57 @@ class _SignupPageState extends State<SignupPage> {
                   ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 24,
                   ),
 
                   // login button
                   CustomFilledButton(
-                    click: () {
-                      // setState(() {});
-                      debugPrint(emailController.text);
-                      debugPrint(passwordController.text);
+                    click: () async {
+                      try {
+                        // generate public-private key
+                        final algorithm = Ed25519();
+                        final keyPair = await algorithm.newKeyPair();
+
+                        final convertedPrivateKey = intsToHexString(
+                            await keyPair.extractPrivateKeyBytes());
+                        debugPrint("private key: $convertedPrivateKey");
+                        final extractedPubKey =
+                            await keyPair.extractPublicKey();
+                        debugPrint(
+                            "public key: ${intsToHexString(extractedPubKey.bytes)}");
+
+                        // store private key securely
+
+                        final body = <String, dynamic>{
+                          "username": usernameController.text,
+                          "email": emailController.text,
+                          "emailVisibility": true,
+                          "password": passwordController.text,
+                          "passwordConfirm": repeatPassController.text,
+                          "name": nameController.text,
+                          "publicKey": intsToHexString(extractedPubKey.bytes),
+                        };
+
+                        final record =
+                            await pb.collection('users').create(body: body);
+
+                        debugPrint(record.created);
+
+                        if (record.created.isNotEmpty) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(signupSuccessSnackbar);
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/login');
+                        } else {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(signupErrorSnackbar);
+                        }
+                      } catch (e) {
+                        debugPrint(e.toString());
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(signupErrorSnackbar);
+                      }
                     },
                     child: Text(
                       "Create Account",
@@ -204,7 +270,7 @@ class _SignupPageState extends State<SignupPage> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) {
-                                return LoginPage();
+                                return const LoginPage();
                               },
                             ),
                           );

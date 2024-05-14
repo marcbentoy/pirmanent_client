@@ -6,6 +6,8 @@ class CustomFilledButton extends StatelessWidget {
   final void Function() click;
   final double? width;
   final double? height;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   const CustomFilledButton({
     super.key,
@@ -13,6 +15,8 @@ class CustomFilledButton extends StatelessWidget {
     required this.child,
     this.width,
     this.height,
+    this.backgroundColor,
+    this.borderColor,
   });
 
   @override
@@ -20,9 +24,10 @@ class CustomFilledButton extends StatelessWidget {
     return FilledButton(
       style: ButtonStyle(
         minimumSize: MaterialStatePropertyAll(Size(width ?? 272, height ?? 48)),
-        backgroundColor: MaterialStatePropertyAll(kBlue),
+        backgroundColor: MaterialStatePropertyAll(backgroundColor ?? kBlue),
         shape: MaterialStatePropertyAll(
           RoundedRectangleBorder(
+            side: BorderSide(color: borderColor ?? Colors.transparent),
             borderRadius: BorderRadius.circular(4),
           ),
         ),

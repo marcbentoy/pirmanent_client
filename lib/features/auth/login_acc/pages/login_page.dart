@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
 import 'package:pirmanent_client/features/auth/signup_acc/pages/signup_page.dart';
+import 'package:pirmanent_client/main.dart';
+import 'package:pirmanent_client/models/user_model.dart';
 
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
+import 'package:pirmanent_client/widgets/snackbars.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../widgets/custom_filled_button.dart';
 
@@ -17,6 +22,17 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+
+  final pb = PocketBase('http://192.168.1.48:8090');
+
+  @override
+  void initState() {
+    super.initState();
+    if (pb.authStore.isValid) {
+      Navigator.pop(context);
+      Navigator.pushNamed(context, '/app');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,19 +73,12 @@ class _LoginPageState extends State<LoginPage> {
                       // wordSpacing: -4,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
-                  // Text(
-                  //   "Start to sign important documents",
-                  //   style: GoogleFonts.inter(
-                  //     color: kSubheadline,
-                  //     fontSize: 14,
-                  //   ),
-                  // ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 64,
                   ),
 
@@ -84,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       CustomTextField(
@@ -94,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 24,
                   ),
 
@@ -109,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       CustomTextField(
@@ -120,18 +129,58 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   // spacer
-                  SizedBox(
+                  const SizedBox(
                     height: 24,
                   ),
 
                   // login button
                   CustomFilledButton(
-                    click: () {
-                      // setState(() {});
-                      debugPrint(emailController.text);
-                      debugPrint(passwordController.text);
+                    click: () async {
+                      try {
+                        final authData = await pb
+                            .collection('users')
+                            .authWithPassword(
+                                emailController.text, passwordController.text);
 
-                      Navigator.pushNamed(context, '/app');
+                        setState(() {
+                          authToken = authData.token;
+                        });
+
+                        // pb.authStore.save();
+                        // var loggedInUserData =
+                        //     jsonDecode(pb.authStore.model.toString());
+
+                        if (pb.authStore.isValid) {
+                          final SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+
+                          await prefs.setString('pb_aut', authData.token);
+
+                          // update userdata
+                          setState(() {
+                            userData = User(
+                              email: pb.authStore.model
+                                  .getDataValue<String>("email"),
+                              name: pb.authStore.model
+                                  .getDataValue<String>("name"),
+                            );
+
+                            // userId = loggedInUserData['id'];
+                          });
+                          // print("user id: $userId");
+
+                          // show snackbar
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(loginSuccessSnackbar);
+                          Navigator.pushNamed(context, '/app');
+                        } else {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(loginErrorSnackbar);
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(loginErrorSnackbar);
+                      }
                     },
                     child: Text(
                       "Login",
@@ -156,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) {
-                                return SignupPage();
+                                return const SignupPage();
                               },
                             ),
                           );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
+import 'package:pirmanent_client/main.dart';
 import 'package:pirmanent_client/widgets/sidebar/sidebar_item.dart';
 import 'package:pirmanent_client/widgets/sidebar/sidebar_item_model.dart';
 
@@ -23,6 +24,8 @@ class _CustomSidebarState extends State<CustomSidebar> {
 
   @override
   void initState() {
+    // get all documents that has user's id
+
     super.initState();
     items = [
       SidebarModel(
@@ -44,18 +47,18 @@ class _CustomSidebarState extends State<CustomSidebar> {
         title: "Sign",
         svgIconAssetPath: "assets/icons/sign_icon.svg",
         clickCallback: () {},
-        notifications: 10,
+        notifications: signatureReqNotifs,
       ),
-      SidebarModel(
-        title: "Verify",
-        svgIconAssetPath: "assets/icons/verify_icon.svg",
-        clickCallback: () {},
-      ),
-      SidebarModel(
-        title: "Settings",
-        svgIconAssetPath: "assets/icons/settings_icon.svg",
-        clickCallback: () {},
-      ),
+      // SidebarModel(
+      //   title: "Verify",
+      //   svgIconAssetPath: "assets/icons/verify_icon.svg",
+      //   clickCallback: () {},
+      // ),
+      // SidebarModel(
+      //   title: "Settings",
+      //   svgIconAssetPath: "assets/icons/settings_icon.svg",
+      //   clickCallback: () {},
+      // ),
       SidebarModel(
         title: "Account",
         svgIconAssetPath: "assets/icons/account_icon.svg",
@@ -70,17 +73,15 @@ class _CustomSidebarState extends State<CustomSidebar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: kBlack,
       ),
       width: 200,
       child: Column(
         children: [
-          Container(
-            child: Image(image: AssetImage('assets/branding/logo.png')),
-          ),
-          SizedBox(
+          const Image(image: AssetImage('assets/branding/logo.png')),
+          const SizedBox(
             height: 24,
           ),
           Column(
@@ -120,7 +121,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
               color: kPaleWhite,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -129,7 +130,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
       3,
       Column(
         children: [
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             "Actions",
             style: GoogleFonts.inter(
@@ -137,25 +138,32 @@ class _CustomSidebarState extends State<CustomSidebar> {
               color: kPaleWhite,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
         ],
       ),
     );
 
+    // sidebar.insert(
+    //   7,
+    //   Column(
+    //     children: [
+    //       const SizedBox(height: 16),
+    //       Text(
+    //         "System",
+    //         style: GoogleFonts.inter(
+    //           fontSize: 12,
+    //           color: kPaleWhite,
+    //         ),
+    //       ),
+    //       const SizedBox(height: 4),
+    //     ],
+    //   ),
+    // );
+
     sidebar.insert(
-      7,
-      Column(
-        children: [
-          SizedBox(height: 16),
-          Text(
-            "System",
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: kPaleWhite,
-            ),
-          ),
-          SizedBox(height: 4),
-        ],
+      6,
+      SizedBox(
+        height: 16,
       ),
     );
 
