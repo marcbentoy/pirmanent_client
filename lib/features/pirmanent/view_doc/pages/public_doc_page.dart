@@ -63,12 +63,14 @@ class _PublicDocsPageState extends State<PublicDocsPage> {
             uploader: User(
               email: uploader.data['email'],
               name: uploader.data['name'],
+              publicKey: uploader.data['publicKey'],
             ),
             dateUploaded: DateTime.parse(item['created']),
             description: item['description'],
             signer: User(
               email: signer.data['email'],
               name: signer.data['name'],
+              publicKey: signer.data['publicKey'],
             ),
             status: item['status'] == 'waiting'
                 ? DocumentStatus.waiting

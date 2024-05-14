@@ -38,6 +38,24 @@ final signupErrorSnackbar = SnackBar(
   ),
 );
 
+final uploadSuccessSnackbar = SnackBar(
+  backgroundColor: kBlue,
+  duration: Duration(milliseconds: 1500),
+  content: Text(
+    "Document uploaded!",
+    style: GoogleFonts.inter(),
+  ),
+);
+
+final uploadErrorSnackbar = SnackBar(
+  duration: Duration(milliseconds: 1500),
+  backgroundColor: kRed,
+  content: Text(
+    "Invalid document credentials!",
+    style: GoogleFonts.inter(),
+  ),
+);
+
 final logoutSuccessSnackbar = SnackBar(
   duration: Duration(milliseconds: 1500),
   backgroundColor: kBlue,

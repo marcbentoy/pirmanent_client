@@ -165,6 +165,8 @@ class _LoginPageState extends State<LoginPage> {
                                   .getDataValue<String>("email"),
                               name: pb.authStore.model
                                   .getDataValue<String>("name"),
+                              publicKey: pb.authStore.model
+                                  .getDataValue<String>("publicKey"),
                             );
 
                             userId = loggedInUserData['id'];
