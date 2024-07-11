@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pirmanent_client/constants.dart';
 import 'package:pirmanent_client/core/crypto_utils.dart';
 import 'package:pirmanent_client/features/auth/login_acc/pages/login_page.dart';
+import 'package:pirmanent_client/utils.dart';
 import 'package:pirmanent_client/widgets/custom_filled_button.dart';
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
 import 'package:pirmanent_client/widgets/snackbars.dart';
@@ -23,8 +24,6 @@ class _SignupPageState extends State<SignupPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController repeatPassController = TextEditingController();
-
-  final pb = PocketBase('http://192.168.1.48:8090');
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +199,7 @@ class _SignupPageState extends State<SignupPage> {
                     height: 24,
                   ),
 
-                  // login button
+                  // sign up button
                   CustomFilledButton(
                     click: () async {
                       try {
@@ -218,7 +217,6 @@ class _SignupPageState extends State<SignupPage> {
                             "public key: ${intsToHexString(extractedPubKey.bytes)}");
 
                         // store private key securely
-
                         final body = <String, dynamic>{
                           "username": usernameController.text,
                           "email": emailController.text,
@@ -229,11 +227,13 @@ class _SignupPageState extends State<SignupPage> {
                           "publicKey": intsToHexString(extractedPubKey.bytes),
                         };
 
-                        // TODO: store private key securely with flutter secure storage
-                        final sstorage = new FlutterSecureStorage();
+                        const sstorage = FlutterSecureStorage();
                         sstorage.write(
                             key: emailController.text,
                             value: convertedPrivateKey);
+
+                        final pbUrl = await getPbUrl();
+                        final pb = PocketBase(pbUrl);
 
                         final record =
                             await pb.collection('users').create(body: body);

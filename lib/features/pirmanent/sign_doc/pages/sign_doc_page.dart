@@ -7,6 +7,8 @@ import 'package:pirmanent_client/main.dart';
 import 'package:pirmanent_client/models/document_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:pirmanent_client/models/user_model.dart';
+import 'package:pirmanent_client/utils.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 import '../../../../widgets/document_tile.dart';
 
@@ -36,15 +38,19 @@ class _SignDocPageState extends State<SignDocPage> {
 
   void getSignatureRequestDocs() async {
     print("user id: $userId");
+
+    final pbUrl = await getPbUrl();
+    final pb = PocketBase(pbUrl);
+
     final documentsResponse = await http.get(
         Uri.parse(
-            'http://192.168.1.48:8090/api/collections/documents/records?filter=(status%3D\'waiting\'%26%26signer%3D\'$userId\')'),
+            '$pbUrl/api/collections/documents/records?filter=(status%3D\'waiting\'%26%26signer%3D\'$userId\')'),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-type': 'application/json',
         });
 
-    print(documentsResponse.body);
+    debugPrint(documentsResponse.body);
 
     if (documentsResponse.statusCode == 200) {
       final data = jsonDecode(documentsResponse.body);
@@ -82,6 +88,7 @@ class _SignDocPageState extends State<SignDocPage> {
                     ? DocumentStatus.signed
                     : DocumentStatus.cancelled,
             uploadedDigitalSignature: item['uploadedDigitalSignature'],
+            docId: item['id'],
           ));
         }
 

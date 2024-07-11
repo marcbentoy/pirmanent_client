@@ -56,6 +56,24 @@ final uploadErrorSnackbar = SnackBar(
   ),
 );
 
+final signSuccessSnackbar = SnackBar(
+  backgroundColor: kBlue,
+  duration: Duration(milliseconds: 1500),
+  content: Text(
+    "Document signed!",
+    style: GoogleFonts.inter(),
+  ),
+);
+
+final signErrorSnackbar = SnackBar(
+  duration: Duration(milliseconds: 1500),
+  backgroundColor: kRed,
+  content: Text(
+    "Invalid document credentials!",
+    style: GoogleFonts.inter(),
+  ),
+);
+
 final logoutSuccessSnackbar = SnackBar(
   duration: Duration(milliseconds: 1500),
   backgroundColor: kBlue,
@@ -70,6 +88,15 @@ final logoutErrorSnackbar = SnackBar(
   backgroundColor: kRed,
   content: Text(
     "Error logging out!",
+    style: GoogleFonts.inter(),
+  ),
+);
+
+final cannotUploadSnackbar = SnackBar(
+  duration: Duration(milliseconds: 1500),
+  backgroundColor: kRed,
+  content: Text(
+    "Cannot upload if no fingerprint enrolled!",
     style: GoogleFonts.inter(),
   ),
 );

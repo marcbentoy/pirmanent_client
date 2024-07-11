@@ -1,21 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:cryptography/cryptography.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:path/path.dart';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:filepicker_windows/filepicker_windows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pirmanent_client/utils.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+
 import 'package:pirmanent_client/constants.dart';
 import 'package:pirmanent_client/core/crypto_utils.dart';
 import 'package:pirmanent_client/main.dart';
 import 'package:pirmanent_client/widgets/custom_filled_button.dart';
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
-import 'package:http/http.dart' as http;
 import 'package:pirmanent_client/widgets/snackbars.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 class UploadDocPage extends StatefulWidget {
   const UploadDocPage({super.key});
@@ -34,6 +37,14 @@ class _UploadDocPageState extends State<UploadDocPage> {
   File? selectedFile;
 
   bool isPublic = false;
+
+  late Signature digitalSignature;
+
+  void _write(String text) async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final File file = File('${directory.path}/logs.txt');
+    await file.writeAsString(text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,175 +230,137 @@ class _UploadDocPageState extends State<UploadDocPage> {
           SizedBox(height: 24),
 
           // proceed button
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: CustomFilledButton(
-                  backgroundColor: kGreen,
-                  click: () async {
-                    // get file
+          CustomFilledButton(
+            width: double.infinity,
+            click: () async {
+              try {
+                // get pdf
+                final PdfDocument document = PdfDocument(
+                  inputBytes: File(selectedFilePath!).readAsBytesSync(),
+                );
 
-                    // get signer id based on email
+                // add page to pdf
+                final String paragraphText = 'uploaded by: ${userData.name},'
+                    'date: ${DateTime.now()}';
 
-                    // create post request
-                    final record = await pb.collection('documents').create(
-                      body: {
-                        'title': 'Sample Document upload using flutter',
-                        'status': "waiting",
-                        'uploader': "67quv2nnc5vktwn",
-                        'signer': "o9wsff6hr1rch40",
-                      },
-                      files: [
-                        http.MultipartFile.fromString(
-                          'document', // the name of the file field
-                          'example content...',
-                          filename: 'example_document.txt',
-                        ),
-                      ],
-                    );
-                  },
-                  child: Text(
-                    "Preview",
-                    style: GoogleFonts.inter(),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 4,
-              ),
-              Expanded(
-                flex: 6,
-                child: CustomFilledButton(
-                  click: () async {
-                    try {
-                      // get pdf
-                      final PdfDocument document = PdfDocument(
-                        inputBytes: File(selectedFilePath!).readAsBytesSync(),
-                      );
+                final PdfPage page = document.pages.add();
+                final PdfLayoutResult newlayoutResult = PdfTextElement(
+                        text: paragraphText,
+                        font: PdfStandardFont(PdfFontFamily.helvetica, 12),
+                        brush: PdfSolidBrush(PdfColor(0, 0, 0)))
+                    .draw(
+                        page: page,
+                        bounds: Rect.fromLTWH(0, 0, page.getClientSize().width,
+                            page.getClientSize().height),
+                        format: PdfLayoutFormat(
+                            layoutType: PdfLayoutType.paginate))!;
 
-                      // add page to pdf
-                      document.pages.add().graphics.drawString(
-                          "uploaded by: ${userData.name}",
-                          PdfStandardFont(PdfFontFamily.helvetica, 12),
-                          brush: PdfSolidBrush(PdfColor(0, 0, 0)),
-                          bounds: const Rect.fromLTWH(0, 0, 150, 20));
+                // Draw the next paragraph/content.
+                page.graphics.drawLine(
+                    PdfPen(PdfColor(255, 0, 0)),
+                    Offset(0, newlayoutResult.bounds.bottom + 10),
+                    Offset(page.getClientSize().width,
+                        newlayoutResult.bounds.bottom + 10));
 
-                      document.pages.add().graphics.drawString(
-                          "date: ${DateTime.now()}",
-                          PdfStandardFont(PdfFontFamily.helvetica, 12),
-                          brush: PdfSolidBrush(PdfColor(0, 0, 0)),
-                          bounds: const Rect.fromLTWH(0, 0, 150, 20));
+                // save edited pdf
+                File(selectedFilename!).writeAsBytes(await document.save());
+                document.dispose();
+                selectedFile = File(selectedFilename!);
 
-                      // save edited pdf
-                      File(selectedFilename!)
-                          .writeAsBytes(await document.save());
-                      document.dispose();
+                // sign document base on user's private key
+                final message = await File(selectedFilename!).readAsBytes();
+                final algorithm = Ed25519();
 
-                      // sign document base on user's private key
-                      final message =
-                          await File(selectedFilename!).readAsBytes();
-                      final algorithm = Ed25519();
+                final keyPair = await retrieveKeyPair(userData);
+                print(intsToHexString(await keyPair.extractPrivateKeyBytes()));
+                var extractedPubKey = await keyPair.extractPublicKey();
+                print(intsToHexString(extractedPubKey.bytes));
+                digitalSignature =
+                    await algorithm.sign(message, keyPair: keyPair);
 
-                      final keyPair = await retrieveKeyPair();
-                      print(intsToHexString(
-                          await keyPair.extractPrivateKeyBytes()));
-                      var extractedPubKey = await keyPair.extractPublicKey();
-                      print(intsToHexString(extractedPubKey.bytes));
-                      final digitalSignature =
-                          await algorithm.sign(message, keyPair: keyPair);
+                final pbUrl = await getPbUrl();
 
-                      // get signer id base on email
-                      final recordEndpoint =
-                          'http://192.168.1.48:8090/api/collections/users/records?filter=email=\'${userEmailController.text}\'';
-                      final recordResponse = await http.get(
-                        Uri.parse(recordEndpoint),
-                        headers: {'Content-type': 'application/json'},
-                      );
+                // get signer id base on email
+                final recordEndpoint =
+                    '$pbUrl/api/collections/users/records?filter=email=\'${userEmailController.text}\'';
+                final recordResponse = await http.get(
+                  Uri.parse(recordEndpoint),
+                  headers: {'Content-type': 'application/json'},
+                );
 
-                      print(digitalSignature.toString());
+                print(digitalSignature.toString());
 
-                      if (recordResponse.statusCode == 200) {
-                        final records = jsonDecode(recordResponse.body);
-                        print("records: ${records}");
-                        print("records id: ${records['items'][0]['id']}");
-                        final signerId = records['items'][0]['id'];
+                if (recordResponse.statusCode == 200) {
+                  final records = jsonDecode(recordResponse.body);
+                  print("records: $records");
+                  print("records id: ${records['items'][0]['id']}");
+                  final signerId = records['items'][0]['id'];
 
-                        // create post request
-                        pb.collection('documents').create(
-                          body: {
-                            'title': titleController.text,
-                            'status': 'waiting',
-                            'uploader': userId,
-                            'signer': signerId,
-                            'uploadedDigitalSignature':
-                                intsToHexString(digitalSignature.bytes),
-                          },
-                          files: [
-                            http.MultipartFile.fromBytes(
-                              'uploadedFile', // the name of the file field
-                              selectedFile!.readAsBytesSync(),
-                              filename: selectedFilename,
-                            ),
-                          ],
-                        ).then((record) {
-                          print(record.id);
-                          print(record.getStringValue('title'));
-                        });
+                  final pb = PocketBase(pbUrl);
 
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(uploadSuccessSnackbar);
-                      } else {
-                        // TODO: show error upload snackbar
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(uploadErrorSnackbar);
-                      }
-                    } catch (e) {
-                      print(e);
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(uploadErrorSnackbar);
-                    }
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SvgPicture.asset("assets/icons/upload_icon.svg"),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      Text(
-                        "Upload",
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  // create post request
+                  pb.collection('documents').create(
+                    body: {
+                      'title': titleController.text,
+                      'status': 'waiting',
+                      'uploader': userId,
+                      'description': descriptionController.text,
+                      'signer': signerId,
+                      'uploadedDigitalSignature':
+                          intsToHexString(digitalSignature.bytes),
+                      'isPublic': isPublic,
+                      'isVerified': false,
+                    },
+                    files: [
+                      http.MultipartFile.fromBytes(
+                        'uploadedFile', // the name of the file field
+                        selectedFile!.readAsBytesSync(),
+                        filename: selectedFilename,
                       ),
                     ],
+                  ).then((record) {
+                    print(record.id);
+                    print(record.getStringValue('title'));
+                  });
+
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(uploadSuccessSnackbar);
+                } else {
+                  _write(
+                      "error record resonpose, status code: ${recordResponse.statusCode}");
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(uploadErrorSnackbar);
+                }
+              } catch (e) {
+                _write("error uploading file, don't know why. Here's why: $e");
+                ScaffoldMessenger.of(context).showSnackBar(uploadErrorSnackbar);
+              }
+              setState(() {
+                selectedFilePath = "no file selected";
+                userEmailController.clear();
+                titleController.clear();
+                descriptionController.clear();
+              });
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset("assets/icons/upload_icon.svg"),
+                const SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  "Upload",
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
-  }
-
-  Future<SimpleKeyPair> retrieveKeyPair() async {
-    final storage = FlutterSecureStorage();
-
-    final privateKeyString = await storage.read(key: userData.email);
-    print("priv key from secure storage: $privateKeyString");
-
-    if (privateKeyString == null) {
-      throw Exception('Key pair not found');
-    }
-
-    final privateKeyBytes = hexStringToInts(privateKeyString);
-    final publicKeyBytes = hexStringToInts(userData.publicKey);
-
-    return SimpleKeyPairData(privateKeyBytes,
-        publicKey: SimplePublicKey(publicKeyBytes, type: KeyPairType.ed25519),
-        type: KeyPairType.ed25519);
   }
 }

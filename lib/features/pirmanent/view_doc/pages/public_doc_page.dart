@@ -7,6 +7,8 @@ import 'package:pirmanent_client/main.dart';
 import 'package:pirmanent_client/models/document_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:pirmanent_client/models/user_model.dart';
+import 'package:pirmanent_client/utils.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 import '../../../../widgets/document_tile.dart';
 
@@ -35,9 +37,13 @@ class _PublicDocsPageState extends State<PublicDocsPage> {
   List<Document> pubDocs = [];
 
   void getPubDocs() async {
+    final pbUrl = await getPbUrl();
+
+    final pb = PocketBase(pbUrl);
+
     final documentsResponse = await http.get(
         Uri.parse(
-            "http://192.168.1.48:8090/api/collections/documents/records?filter=isPublic=true"),
+            "$pbUrl/api/collections/documents/records?filter=isPublic=true"),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-type': 'application/json',
@@ -57,8 +63,11 @@ class _PublicDocsPageState extends State<PublicDocsPage> {
               await pb.collection('users').getOne(item['uploader'], expand: "");
           // get signer data
           final signer = await pb.collection('users').getOne(item['signer']);
+          print(item['isVerified']);
+          print("doc description: ${item['isVerified']}");
 
           pubDocs.add(Document(
+            docId: item['id'],
             title: item['title'],
             uploader: User(
               email: uploader.data['email'],
@@ -78,6 +87,13 @@ class _PublicDocsPageState extends State<PublicDocsPage> {
                     ? DocumentStatus.signed
                     : DocumentStatus.cancelled,
             uploadedDigitalSignature: item['uploadedDigitalSignature'],
+            dateSigned: item['dateSigned'] == ""
+                ? null
+                : DateTime.parse(item['dateSigned']),
+            signedDigitalSignature: item['signedDigitalSignature'] == ""
+                ? null
+                : item['signedDigitalSignature'],
+            isVerified: item['isVerified'] == false ? false : true,
           ));
         }
 

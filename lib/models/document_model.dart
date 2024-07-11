@@ -10,10 +10,13 @@ class Document {
   final DocumentStatus status;
   final DateTime dateUploaded;
   final DateTime? dateSigned;
+  final String docId;
+  final bool? isVerified;
 
   Document({
     required this.uploadedDigitalSignature,
     this.signedDigitalSignature,
+    required this.docId,
     required this.title,
     required this.description,
     required this.status,
@@ -21,6 +24,7 @@ class Document {
     required this.signer,
     required this.dateUploaded,
     this.dateSigned,
+    this.isVerified,
   });
 }
 

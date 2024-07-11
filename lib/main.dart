@@ -4,9 +4,7 @@ import 'package:pirmanent_client/features/auth/login_acc/pages/login_page.dart';
 import 'package:pirmanent_client/features/auth/signup_acc/pages/signup_page.dart';
 import 'package:pirmanent_client/features/pirmanent/pirmanent.dart';
 import 'package:pirmanent_client/models/user_model.dart';
-import 'package:pocketbase/pocketbase.dart';
 
-PocketBase pb = PocketBase('http://192.168.1.48:8090');
 late String userId;
 late User userData;
 late String authToken;
@@ -33,6 +31,7 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       routes: {
         '/': (context) => const LoginPage(),
         '/login': (context) => const LoginPage(),

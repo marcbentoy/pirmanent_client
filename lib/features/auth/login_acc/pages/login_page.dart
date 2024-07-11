@@ -6,6 +6,7 @@ import 'package:pirmanent_client/constants.dart';
 import 'package:pirmanent_client/features/auth/signup_acc/pages/signup_page.dart';
 import 'package:pirmanent_client/main.dart';
 import 'package:pirmanent_client/models/user_model.dart';
+import 'package:pirmanent_client/utils.dart';
 
 import 'package:pirmanent_client/widgets/custom_text_field.dart';
 import 'package:pirmanent_client/widgets/snackbars.dart';
@@ -24,16 +25,22 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController pbUrlCtrlr = TextEditingController();
 
-  final pb = PocketBase('http://192.168.1.48:8090');
+  void checkAuthValidity() async {
+    final pbUrl = await getPbUrl();
+    final pb = PocketBase(pbUrl);
 
-  @override
-  void initState() {
-    super.initState();
     if (pb.authStore.isValid) {
       Navigator.pop(context);
       Navigator.pushNamed(context, '/app');
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkAuthValidity();
   }
 
   @override
@@ -43,17 +50,91 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           // illustration
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  color: kBlack,
-                  borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: kBlack,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Image.asset("assets/branding/logo.png"),
+                  ),
                 ),
-                child: Image.asset("assets/branding/logo.png"),
-              ),
+
+                // settings icon
+                Positioned(
+                  right: 32,
+                  bottom: 28,
+                  child: IconButton(
+                    onPressed: () {
+                      // display settings dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            child: Container(
+                              width: 500,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: kDarkWhite,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Update Pocketbase URL",
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 24,
+                                    ),
+                                    CustomTextField(
+                                      controller: pbUrlCtrlr,
+                                      hintText: "http://xxx.xxx.xxx.xxx:8090",
+                                    ),
+                                    const SizedBox(
+                                      height: 12,
+                                    ),
+                                    CustomFilledButton(
+                                      width: double.infinity,
+                                      click: () async {
+                                        // update shared prefs
+                                        final SharedPreferences prefs =
+                                            await SharedPreferences
+                                                .getInstance();
+                                        await prefs.setString(
+                                            "pbUrl", pbUrlCtrlr.text);
+
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(
+                                        "SAVE URL",
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    icon: Icon(Icons.settings_rounded, color: kWhite),
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -139,6 +220,9 @@ class _LoginPageState extends State<LoginPage> {
                   CustomFilledButton(
                     click: () async {
                       try {
+                        final pbUrl = await getPbUrl();
+                        final pb = PocketBase(pbUrl);
+
                         final authData = await pb
                             .collection('users')
                             .authWithPassword(
