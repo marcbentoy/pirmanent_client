@@ -1,3 +1,5 @@
 # Pirmanent Client App
 
-A new Flutter project.
+# Building a windows release
+
+- `dart run inno_bundle:build --release`
