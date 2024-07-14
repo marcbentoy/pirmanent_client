@@ -61,7 +61,7 @@ class _SignDocPageState extends State<SignDocPage> {
       // Ensure items is a list
       if (items is List) {
         for (var item in items) {
-          print("singer's id: ${item['signer']}");
+          print("signer's id: ${item['signer']}");
           // get uploader data
           final uploader =
               await pb.collection('users').getOne(item['uploader'], expand: "");

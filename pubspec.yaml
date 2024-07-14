@@ -1,7 +1,7 @@
 name: pirmanent_client
 description: "Pirmanent desktop client app"
-publish_to: 'vincegwapo'
-version: 0.3.1
+publish_to: 'willofdev'
+version: 0.3.3
 
 environment:
   sdk: '>=3.3.3 <4.0.0'
@@ -45,6 +45,6 @@ flutter_launcher_icons:
 
 inno_bundle:
   id: 15c3b560-975e-100c-b7d4-4d93b2bc5358
-  publisher: Marc Bentoy
+  publisher: Marc Vincent Bentoy
   name: pirmanent
   installer_icon: assets/installer_icon.ico
