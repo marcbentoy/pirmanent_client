@@ -72,11 +72,11 @@ class _UploadDocPageState extends State<UploadDocPage> {
         Directory(p.join(documentsDir.path, 'pirmanent'));
 
     if (!(await documentsAppDir.exists())) {
-      documentsAppDir.create(recursive: true);
+      await documentsAppDir.create(recursive: true);
     }
 
     final savedFilePath = p.join(documentsAppDir.path, selectedFilename);
-    File(savedFilePath).writeAsBytes(await document.save());
+    await File(savedFilePath).writeAsBytes(await document.save());
     document.dispose();
 
     selectedFile = File(savedFilePath);
